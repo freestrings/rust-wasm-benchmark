@@ -1,4 +1,4 @@
-async function main() {
+async function testa() {
     return fetchAndInstantiate('testa.wasm').then(module => {
         const iter = 10;
         const sumNumber = 100000000;
@@ -7,19 +7,29 @@ async function main() {
         let sumResult = sumInJavascript(sumTargetArray);
         let copiedArrayPtr = copyArray(module, sumTargetArray);
         let sumResultInRust = sumInRust(module, copiedArrayPtr, sumTargetArray.length * 4);
+        let inlineSumJsResult = inlineSumInJavascript(iter, sumTargetArray);
+        let inlineSumInRustResult = inlineSumInRust(module, iter, copiedArrayPtr, sumTargetArray.length * 4);
 
-        if(sumResult != sumResultInRust) {
-            throw new Error(`Different result: ${sumResult}, ${sumResultInRust}`);
+        if (sumResult != sumResultInRust) {
+            throw new Error(`1.결과다름: ${sumResult}, ${sumResultInRust}`);
+        }
+
+        if (inlineSumJsResult != inlineSumInRustResult) {
+            throw new Error(`2.결과다름: ${sumResult}, ${sumResultInRust}`);
+        }
+
+        if(sumResult * iter !== inlineSumJsResult) {
+            throw new Error(`3.결과다름: ${(sumResult * iter)}, ${inlineSumJsResult}`);
         }
 
         run('JS - sumInJavascript', iter, () => sumInJavascript(sumTargetArray) === sumResult);
-        run('JS - inlineSumInJavascript', 1, () => inlineSumInJavascript(iter, sumTargetArray) === iter * sumResult);
+        run('JS - inlineSumInJavascript', 1, () => inlineSumInJavascript(iter, sumTargetArray) === inlineSumJsResult);
         run('Rust - sumInRust', iter, () => sumInRust(module, copiedArrayPtr, sumTargetArray.length * 4) === sumResultInRust);
-        run('Rust - inlineSumInRust', 1, () => inlineSumInRust(module, iter, copiedArrayPtr, sumTargetArray.length * 4) == iter * sumResultInRust);
+        run('Rust - inlineSumInRust', 1, () => inlineSumInRust(module, iter, copiedArrayPtr, sumTargetArray.length * 4) == inlineSumJsResult);
     });
 }
 
-main().catch(err => console.error(err));
+testa().catch(err => console.error(err));
 
 function initArray(num) {
     let array = new Int32Array(num);
@@ -35,7 +45,7 @@ function copyArray(module, array) {
     let len = array.length;
     for (let i = 0; i < len; i++) {
         let v = array[i];
-        for(let j = 3 ; j >= 0 ; j--) {
+        for (let j = 3; j >= 0; j--) {
             memory[ptr + i * 4 + j] = v & 0xff;
             v = v >> 8;
         }
@@ -81,14 +91,14 @@ function fetchAndInstantiate(url, importObject) {
         response.arrayBuffer()
     ).then(bytes =>
         WebAssembly.instantiate(bytes, importObject)
-        ).then(results =>
-            results.instance.exports
-        );
+    ).then(results =>
+        results.instance.exports
+    );
 }
 
 function copyCStr(module, ptr) {
     let orig_ptr = ptr;
-    const collectCString = function* () {
+    const collectCString = function*() {
         let memory = new Uint8Array(module.memory.buffer);
         while (memory[ptr] !== 0) {
             if (memory[ptr] === undefined) { throw new Error(`Undefined: ${ptr}`); }
