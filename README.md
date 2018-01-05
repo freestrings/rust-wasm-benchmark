@@ -34,7 +34,10 @@ Emscripten (https://free-strings.blogspot.kr/2017/04/rust-webassembly.html "Emsc
 
 ## testc (Rust + stable -> WASM + wasm32-unknown-emscripten)
 
-TODO
+~~TODO~~
+* cargo build --target wasm32-unknown-emscripten 컴파일 안됨
+  * 링커도 실행 안됨. 참고: [.cargo/config](https://github.com/freestrings/testaris/blob/master/.cargo/config)
+* rustc --target wasm32-unknown-emscripten로 컴파일은 되지만 별도 벤치마크 코드를 실행하기 위한 별도 코드가 필요함
 
 ## 빌드 & 실행
 
