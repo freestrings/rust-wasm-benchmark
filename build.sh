@@ -5,13 +5,10 @@ echo "Current Directory: '$DIR'"
 echo "Build testa"
 
 [ -e www/testa.wasm ] && rm www/testa.wasm
-[ -e www/testa_orig.wasm ] && rm www/testa_orig.wasm
 
-cargo +nightly build --release --target wasm32-unknown-unknown
-
-cp "target/wasm32-unknown-unknown/release/test_rust_wasm.wasm" www/testa_orig.wasm
-
-wasm-gc www/testa_orig.wasm www/testa.wasm
+# https://rustwasm.github.io/book/introduction.html
+wasm-pack build \
+  && cp pkg/test_rust_wasm_bg.wasm www/testa.wasm
 
 echo "Build testb"
 
@@ -24,7 +21,7 @@ emcc emcc_c/sumInt.c \
   -s MODULARIZE=1 \
   -s DEMANGLE_SUPPORT=1 \
   -s ALLOW_MEMORY_GROWTH=1 \
-  -s "EXPORTED_FUNCTIONS=['_sumInt', '_inlineSumInt']" \
+  -s "EXPORTED_FUNCTIONS=['_sumInt', '_inlineSumInt', '_malloc', '_free']" \
   -o emcc_c/sumInt.js
 
 [ -e www/testb.wasm ] && rm www/testb.wasm

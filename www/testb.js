@@ -6,8 +6,8 @@ fetch('testb.wasm')
         var moduleArgs = {
             wasmBinary: binary,
             onRuntimeInitialized: function() {
-                functions.sumInt = module.cwrap('sumInt', 'number', ['number', 'number']);
-                functions.inlineSumInt = module.cwrap('inlineSumInt', 'number', ['number', 'number', 'number']);
+                functions.sumInt = module._sumInt;
+                functions.inlineSumInt = module._inlineSumInt;
                 onReady();
             }
         };
