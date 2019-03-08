@@ -6,12 +6,19 @@
 * 빈번한 Webassembly 함수 호출은 성능저하가 있다고 해서 비교차 inline 코드를 넣어 봄
 * Rust 코드가 복잡한건 초보라서
 
-## www/testa.html (Rust -> WASM + wasm32-unknown-unknown)
+## 테스트 환경
 
-* JS - sumInJavascript 1068
-* JS - inlineSumInJavascript 1067
-* Rust - sumInRust **2204**
-* Rust - inlineSumInRust **2268**
+* NodeJS: 11.0
+* Chrome: 70.0
+* CPU: Intel Core i7-8700
+* Memory: 32GB
+
+## www/testa.html (Rust -> WASM + wasm-bindgen)
+
+* JS - sumInJavascript 719
+* JS - inlineSumInJavascript 721
+* Rust - sumInRust **1292**
+* Rust - inlineSumInRust **1293**
 
 > Webassembly가 JS 보다 더 느리다. inline(=묶어서 실행?)이 더 느리다.
 
@@ -21,10 +28,10 @@ rust 설치 + nightly 툴체인 추가 + wasm32-unknown-unknown 타겟 추가
 
 ## www/testb.html (C -> WASM + emcc)
 
-* JS - sumInt 1072
-* JS - inlineSumInt 1071
-* Ws - sumWs 1173
-* Ws - inlineSumWs **122**
+* JS - sumInt 717
+* JS - inlineSumInt 710
+* Ws - sumWs 769
+* Ws - inlineSumWs **78**
 
 > Webassembly가 JS 보다 더 빠르다. inline(=묶어서 실행?)이 훨씬 빠르다
 
@@ -32,10 +39,26 @@ rust 설치 + nightly 툴체인 추가 + wasm32-unknown-unknown 타겟 추가
 
 Emscripten (https://free-strings.blogspot.kr/2017/04/rust-webassembly.html "Emscripten 설치" 참고)
 
-## testc (Rust + stable -> WASM + wasm32-unknown-emscripten)
+## NodeJS
+
+### Rust -> WASM
+```bash
+JS - sumInJavascript 714
+JS - inlineSumInJavascript 712
+Rust - sumInRust **827**
+Rust - inlineSumInRust **575**
+```
+
+### C -> WASM
+```bash
+JS - sumInt 711
+JS - inlineSumInt 710
+Ws - sumWs 817
+Ws - inlineSumWs **85**
+```
 
 ## 빌드 & 실행
 
-* ./build.sh 
-* 웹서버 띄우고 
-* 브라우저에서 testa.html, testb.html 접속
+* ./build.sh
+* cd www && python -m SimpleHTTPServer (브라우저에서 testa.html, testb.html 콘솔 결과 확인)
+* ./test_in _nodejs.sh
