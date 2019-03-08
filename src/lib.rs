@@ -1,15 +1,48 @@
+extern crate cfg_if;
+extern crate wasm_bindgen;
+
+extern crate serde_json;
+
+use cfg_if::cfg_if;
+use wasm_bindgen::prelude::*;
+
 use std::mem;
 use std::ffi::CString;
 use std::os::raw::{c_char, c_void};
-use std::vec::Vec;
 use std::slice;
+
+cfg_if! {
+    if #[cfg(feature = "wee_alloc")] {
+        extern crate wee_alloc;
+        #[global_allocator]
+        static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
+    }
+}
+
+#[wasm_bindgen]
+pub fn sum_array_in_rust(array: &[i32]) -> isize {
+    let mut sum = 0;
+    for v in array.iter() {
+        sum += *v as isize;
+    } 
+    sum
+}
+
+#[wasm_bindgen]
+pub fn inline_sum_array_in_rust(iter: usize, array: &[i32]) -> isize {
+    let mut sum: isize = 0;
+    for _ in 0..iter {
+        sum += sum_array_in_rust(array);
+    }
+    sum
+}
 
 fn str_to_raw(s: String) -> *mut c_char {
     let s = CString::new(s).unwrap();
     s.into_raw()
 }
 
-fn sum_array_in_rust(ptr: *mut c_void, len: usize) -> i64 {
+fn _sum_array_in_rust(ptr: *mut c_void, len: usize) -> i64 {
 
     let array: &[u8] = unsafe {
         mem::transmute(slice::from_raw_parts(ptr, len))
@@ -33,14 +66,14 @@ fn sum_array_in_rust(ptr: *mut c_void, len: usize) -> i64 {
 pub fn inline_sum_array_in_rust_str(iter: i32, ptr: *mut c_void, len: usize) -> *mut c_char {
     let mut sum: i64 = 0;
     for _ in 0..iter {
-        sum += sum_array_in_rust(ptr, len);
+        sum += _sum_array_in_rust(ptr, len);
     }
     str_to_raw(format!("{}", sum))
 }
 
 #[no_mangle]
 pub fn sum_array_in_rust_str(ptr: *mut c_void, len: usize) -> *mut c_char {
-    str_to_raw(format!("{}", sum_array_in_rust(ptr, len)))
+    str_to_raw(format!("{}", _sum_array_in_rust(ptr, len)))
 }
 
 #[no_mangle]
