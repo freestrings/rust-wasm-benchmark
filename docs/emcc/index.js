@@ -1,12 +1,20 @@
-var module, functions = {};
+msg('##emcc##');
 
-let sumInt = require('./sumInt.js');
-sumInt().then(m => {
-    functions.sumInt = m._sumInt;
-    functions.inlineSumInt = m._inlineSumInt;
-    module = m;
-    main();
-});
+var module, functions = {};
+fetch('sumInt.wasm')
+    .then(response => response.arrayBuffer())
+    .then(buffer => new Uint8Array(buffer))
+    .then(binary => {
+        var moduleArgs = {
+            wasmBinary: binary,
+            onRuntimeInitialized: function() {
+                functions.sumInt = module._sumInt;
+                functions.inlineSumInt = module._inlineSumInt;
+                main();
+            }
+        };
+        module = Module(moduleArgs);
+    });
 
 function jsSumInt(array, n) {
     var s = 0;
@@ -57,7 +65,7 @@ function run(message, iter, cb) {
         let ret = cb();
         if (ret !== true) throw new Error(cb.toString());
     }
-    console.log(message, Date.now() - d);
+    msg([message, Date.now() - d].join(", "));
 }
 
 function main() {
@@ -85,4 +93,11 @@ function main() {
     run('JS - inlineSumInt', 1, () => inlineJsSumInt(array, num, iter) === inlineJsResult);
     run('Ws - sumWs', iter, () => wsSumInt(array, num) === jsResult);
     run('Ws - inlineSumWs', 1, () => wsInlineWsSumInt(array, num, iter) === inlineJsResult);
+}
+
+function msg(msg) {
+    console.log(msg);
+    let div = document.createElement("div");
+    div.innerText = msg;
+    document.body.appendChild(div);
 }

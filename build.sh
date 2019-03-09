@@ -3,22 +3,25 @@
 set -e
 DIR="$(pwd)"
 
-echo "rust build - for nodejs"
-[ -e "${DIR}"/pkg ] && rm -rf "${DIR}"/pkg
+echo "> rust build - for nodejs"
+[ -e "${DIR}"/nodejs/pkg ] && rm -rf "${DIR}"/nodejs/pkg
 
-wasm-pack build --target nodejs && cp -r "${DIR}"/pkg "${DIR}"/wasm_nodejs && cd "${DIR}"/wasm_nodejs && npm link && \
-  cd "${DIR}"/www && npm link test-rust-wasm
+wasm-pack build --target nodejs --scope nodejs --out-dir "${DIR}"/nodejs/pkg && \
+  cd "${DIR}"/nodejs/pkg && npm link && \
+  cd .. && npm link @nodejs/test-rust-wasm
 
-echo "rust build - for browser"
-[ -e "${DIR}"/www/testa.wasm ] && rm "${DIR}"/www/testa.wasm
+echo "> rust build - for browser"
+[ -e "${DIR}"/rust_www/pkg ] && rm -rf "${DIR}"/rust_www/pkg
 
 cd "${DIR}"
 
-rm -rf "${DIR}"/pkg && \
-  wasm-pack build --target browser && \
-  cp "${DIR}"/pkg/test_rust_wasm_bg.wasm "${DIR}"/www/testa.wasm
+wasm-pack build --target browser --scope browser --out-dir "${DIR}"/rust_www/pkg && \
+  cd "${DIR}"/rust_www/pkg && npm link && \
+  cd .. && npm link @browser/test-rust-wasm && \
+  rm -rf "${DIR}"/rust_www/dist && \
+  npm run build
 
-echo "emcc build"
+printf "> emcc build"
 
 emcc "${DIR}"/emcc_c/sumInt.c \
   -Os \
@@ -29,8 +32,10 @@ emcc "${DIR}"/emcc_c/sumInt.c \
   -s "EXPORTED_FUNCTIONS=['_sumInt', '_inlineSumInt', '_malloc', '_free']" \
   -o "${DIR}"/emcc_c/sumInt.js
 
-[ -e "${DIR}"/www/testb.wasm ] && rm "${DIR}"/www/testb.wasm
-[ -e "${DIR}"/www/testb.wasm.js ] && rm "${DIR}"/www/testb.wasm.js
+printf " done\n"
 
-cp "${DIR}"/emcc_c/sumInt.wasm "${DIR}"/www/testb.wasm
-cp "${DIR}"/emcc_c/sumInt.js "${DIR}"/www/testb.wasm.js
+printf "> copy docs"
+cp "${DIR}"/emcc_c/{index.html,index.js,sumInt.js,sumInt.wasm} "${DIR}"/docs/emcc/ && \
+rm -f "${DIR}"/docs/rust/*.* && cp "${DIR}"/rust_www/dist/* "${DIR}"/docs/rust/
+
+printf " done\n"

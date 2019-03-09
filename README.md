@@ -4,61 +4,158 @@
 
 * Webassembly vs Javascript 성능비교 (Webassembly가 월등하다고 해서)
 * 빈번한 Webassembly 함수 호출은 성능저하가 있다고 해서 비교차 inline 코드를 넣어 봄
-* Rust 코드가 복잡한건 초보라서
+
+[demo: result as emscripten](https://freestrings.github.io/rust-wasm-benchmark/emcc)
+
+[demo: result as wasm-pack](https://freestrings.github.io/rust-wasm-benchmark/rust)
+
+## 왜?
+
+To enjoy Rust!
+
+## 테스트 코드
+
+**C**
+```c
+int sumInt(int *array, int n) {
+  int s = 0;
+  for (int i = 0; i < n; i++) {
+    s += array[i];
+  }
+  return s;
+}
+
+int inlineSumInt(int *array, int n, int iter) {
+  int s = 0;
+  for (int i = 0 ; i < iter; i++) {
+    s += sumInt(array, n);
+  }
+  return s;
+} 
+```
+
+**Rust**
+```rust
+pub fn sum_array_in_rust(array: &[i32]) -> i32 {
+    array.iter().sum()
+}
+
+pub fn inline_sum_array_in_rust(iter: usize, array: &[i32]) -> i32 {
+    let mut sum: i32 = 0;
+    for _ in 0..iter {
+        sum += sum_array_in_rust(array);
+    }
+    sum
+}
+```
+
+**Javascript**
+```javascript
+function jsSumInt(array, n) {
+    var s = 0;
+    for (var i = 0; i < n; i++) {
+        s += array[i];
+    }
+    return s;
+}
+
+function inlineJsSumInt(array, n, iter) {
+    var s = 0;
+    for (var i = 0; i < iter; i++) {
+        s += jsSumInt(array, n);
+    }
+    return s;
+}
+```
+
+## 사전설치
+
+* Emscripten (https://free-strings.blogspot.kr/2017/04/rust-webassembly.html "Emscripten 설치" 참고)
+* NodeJS
+* Rust (Tested in nightly version)
+* wasm-pack (https://github.com/rustwasm/wasm-pack)
+* Docker
+
+## 빌드
+
+```bash
+./build.sh
+```
+
+## 로컬 실행
+
+```bash
+./docker/run.sh
+```
+
+* http://localhost:8082/rust/
+* http://localhost:8082/emcc/
 
 ## 테스트 환경
 
 * NodeJS: 11.0
-* Chrome: 70.0
-* CPU: Intel Core i7-8700
-* Memory: 32GB
+* Chrome: 72.0, Firefox: 65.0
+* CPU: Intel Core i5-4460
+* Memory: 16GB
 
-## www/testa.html (Rust -> WASM + wasm-bindgen)
+### Chrome
 
-* JS - sumInJavascript 719
-* JS - inlineSumInJavascript 721
-* Rust - sumInRust **1292**
-* Rust - inlineSumInRust **1293**
+```
+##rust##
+JS - sumInt, 1108
+JS - inlineSumInt, 1112
+Ws - sumWs, 977
+Ws - inlineSumWs, 625
 
-> Webassembly가 JS 보다 더 느리다. inline(=묶어서 실행?)이 더 느리다.
+##emcc##
+JS - sumInt, 1116
+JS - inlineSumInt, 1115
+Ws - sumWs, 1038
+Ws - inlineSumWs, 104
+```
 
-### 사전설치
+### Firefox
 
-rust 설치 + nightly 툴체인 추가 + wasm32-unknown-unknown 타겟 추가
+```
+##rust##
+JS - sumInt, 1114
+JS - inlineSumInt, 1114
+Ws - sumWs, 1292
+Ws - inlineSumWs, 727
 
-## www/testb.html (C -> WASM + emcc)
+##emcc##
+JS - sumInt, 1131
+JS - inlineSumInt, 1120
+Ws - sumWs, 1150
+Ws - inlineSumWs, 125
+```
 
-* JS - sumInt 717
-* JS - inlineSumInt 710
-* Ws - sumWs 769
-* Ws - inlineSumWs **78**
-
-> Webassembly가 JS 보다 더 빠르다. inline(=묶어서 실행?)이 훨씬 빠르다
-
-### 사전설치
-
-Emscripten (https://free-strings.blogspot.kr/2017/04/rust-webassembly.html "Emscripten 설치" 참고)
+> Webassembly이 Javascript 보다 빠르고 \
+> 호출 빈도가 적은 Inline 형식이 빠르다. \
+> 그리고 emcc로 컴파일된 Inline은 월등하게 빠르다.
 
 ## NodeJS
 
-### Rust -> WASM
 ```bash
-JS - sumInJavascript 714
-JS - inlineSumInJavascript 712
-Rust - sumInRust **827**
-Rust - inlineSumInRust **575**
+./test_in _nodejs.sh
 ```
 
-### C -> WASM
 ```bash
-JS - sumInt 711
-JS - inlineSumInt 710
-Ws - sumWs 817
-Ws - inlineSumWs **85**
+emcc
+JS - sumInt 1133
+JS - inlineSumInt 1135
+Ws - sumWs 1113
+Ws - inlineSumWs 118
 ```
 
-## 빌드 & 실행
+> Emscripten으로 컴파일된 코드는 역시 Inline 형식으로 작성된 Webassembly가 월등하게 빠르다.
 
-* ./build.sh
-* cd www && python -m SimpleHTTPServer (브라우저에서 testa.html, testb.html 콘솔 결과 확인)
-* ./test_in _nodejs.sh
+```bash
+rust
+JS - sumInt 1161
+JS - inlineSumInt 1153
+Ws - sumWs 2196
+Ws - inlineSumWs 879
+```
+
+> Rust로 컴파일된 코드는 호출 빈도가 많을 수록 느리고, Inline 형식으로 작성된 코드는 약간 빠르다.

@@ -1,5 +1,7 @@
+msg('##emcc##');
+
 var module, functions = {};
-fetch('testb.wasm')
+fetch('sumInt.wasm')
     .then(response => response.arrayBuffer())
     .then(buffer => new Uint8Array(buffer))
     .then(binary => {
@@ -8,7 +10,7 @@ fetch('testb.wasm')
             onRuntimeInitialized: function() {
                 functions.sumInt = module._sumInt;
                 functions.inlineSumInt = module._inlineSumInt;
-                onReady();
+                main();
             }
         };
         module = Module(moduleArgs);
@@ -63,10 +65,10 @@ function run(message, iter, cb) {
         let ret = cb();
         if (ret !== true) throw new Error(cb.toString());
     }
-    console.log(message, Date.now() - d);
+    msg([message, Date.now() - d].join(", "));
 }
 
-function onReady() {
+function main() {
     let iter = 10;
     let num = 100000000;
     let array = initArray(num);
@@ -91,4 +93,11 @@ function onReady() {
     run('JS - inlineSumInt', 1, () => inlineJsSumInt(array, num, iter) === inlineJsResult);
     run('Ws - sumWs', iter, () => wsSumInt(array, num) === jsResult);
     run('Ws - inlineSumWs', 1, () => wsInlineWsSumInt(array, num, iter) === inlineJsResult);
+}
+
+function msg(msg) {
+    console.log(msg);
+    let div = document.createElement("div");
+    div.innerText = msg;
+    document.body.appendChild(div);
 }
