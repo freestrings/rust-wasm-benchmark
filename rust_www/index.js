@@ -1,6 +1,6 @@
 msg('##rust##');
 
-import * as wasm from "@browser/test-rust-wasm";
+import * as wasm from '@browser/test-rust-wasm';
 
 function main() {
     let iter = 10;
@@ -11,22 +11,33 @@ function main() {
     let inlineJsResult = inlineJsSumInt(array, num, iter);
     let inlineWsResult = wasm.inline_sum_array_in_rust(iter, array);
 
-    if(jsResult !== wsResult) {
+    if (jsResult !== wsResult) {
         throw new Error(`1.결과다름: ${jsResult}, ${wsResult}`);
     }
 
-    if(inlineJsResult !== inlineWsResult) {
+    if (inlineJsResult !== inlineWsResult) {
         throw new Error(`2.결과다름: ${inlineJsResult}, ${inlineWsResult}`);
     }
 
-    if(jsResult * iter !== inlineJsResult) {
+    if (jsResult * iter !== inlineJsResult) {
         throw new Error(`3.결과다름: ${(jsResult * iter)}, ${inlineJsResult}`);
     }
 
-    run('JS - sumInt', iter, () => jsSumInt(array, num) === jsResult);
-    run('JS - inlineSumInt', 1, () => inlineJsSumInt(array, num, iter) === inlineJsResult);
-    run('Ws - sumWs', iter, () => wasm.sum_array_in_rust(array) === jsResult);
-    run('Ws - inlineSumWs', 1, () => wasm.inline_sum_array_in_rust(iter, array) === inlineJsResult);
+    run('JS - sum', iter, function() {
+        return jsSumInt(array, num) === jsResult;
+    }).then(function() {
+        return run('JS - inlineSum', iter, function() {
+            return inlineJsSumInt(array, num, iter) === inlineJsResult;
+        });
+    }).then(function() {
+        return run('Ws - sum', iter, function() {
+            return wasm.sum_array_in_rust(array) === jsResult;
+        });
+    }).then(function() {
+        return run('Ws - inlineSum', iter, function() {
+            return wasm.inline_sum_array_in_rust(iter, array) === inlineJsResult;
+        });
+    });
 }
 
 function initArray(num) {
@@ -38,12 +49,17 @@ function initArray(num) {
 }
 
 function run(message, iter, cb) {
-    let d = Date.now();
-    for (let i = 0; i < iter; i++) {
-        let ret = cb();
-        if (ret !== true) throw new Error(cb.toString());
-    }
-    msg([message, Date.now() - d].join(", "));
+    return new Promise(function(resolve, reject) {
+        setTimeout(function() {
+            let d = Date.now();
+            for (let i = 0; i < iter; i++) {
+                let ret = cb();
+                if (ret !== true) throw new Error(cb.toString());
+            }
+            msg([message, Date.now() - d].join(', '));
+            resolve();
+        }, 1000);
+    });
 }
 
 function jsSumInt(array, n) {
@@ -64,7 +80,7 @@ function inlineJsSumInt(array, n, iter) {
 
 function msg(msg) {
     console.log(msg);
-    let div = document.createElement("div");
+    let div = document.createElement('div');
     div.innerText = msg;
     document.body.appendChild(div);
 }

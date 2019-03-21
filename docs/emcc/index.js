@@ -90,9 +90,9 @@ function main() {
     }
 
     run('JS - sumInt', iter, () => jsSumInt(array, num) === jsResult);
-    run('JS - inlineSumInt', 1, () => inlineJsSumInt(array, num, iter) === inlineJsResult);
+    run('JS - inlineSumInt', iter, () => inlineJsSumInt(array, num, iter) === inlineJsResult);
     run('Ws - sumWs', iter, () => wsSumInt(array, num) === jsResult);
-    run('Ws - inlineSumWs', 1, () => wsInlineWsSumInt(array, num, iter) === inlineJsResult);
+    run('Ws - inlineSumWs', iter, () => wsInlineWsSumInt(array, num, iter) === inlineJsResult);
 }
 
 function msg(msg) {

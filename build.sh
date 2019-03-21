@@ -5,6 +5,8 @@ DIR="$(pwd)"
 
 echo "> rust build - for nodejs"
 [ -e "${DIR}"/nodejs/pkg ] && rm -rf "${DIR}"/nodejs/pkg
+[ -e "${DIR}"/nodejs/node_modules ] && rm -rf "${DIR}"/nodejs/node_modules
+[ -e "${DIR}"/rust_www/node_modules ] && rm -rf "${DIR}"/rust_www/node_modules
 
 wasm-pack build --target nodejs --scope nodejs --out-dir "${DIR}"/nodejs/pkg && \
   cd "${DIR}"/nodejs/pkg && npm link && \
@@ -17,7 +19,7 @@ cd "${DIR}"
 
 wasm-pack build --target browser --scope browser --out-dir "${DIR}"/rust_www/pkg && \
   cd "${DIR}"/rust_www/pkg && npm link && \
-  cd .. && npm link @browser/test-rust-wasm && \
+  cd .. && npm install && npm link @browser/test-rust-wasm && \
   rm -rf "${DIR}"/rust_www/dist && \
   npm run build
 

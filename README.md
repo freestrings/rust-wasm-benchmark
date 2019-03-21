@@ -102,32 +102,32 @@ function inlineJsSumInt(array, n, iter) {
 
 ```
 ##rust##
-JS - sumInt, 1108
-JS - inlineSumInt, 1112
-Ws - sumWs, 977
-Ws - inlineSumWs, 625
+JS - sum, 698
+JS - inlineSum, 7070
+Ws - sum, 775
+Ws - inlineSum, 5266
 
 ##emcc##
-JS - sumInt, 1116
-JS - inlineSumInt, 1115
-Ws - sumWs, 1038
-Ws - inlineSumWs, 104
+JS - sumInt, 706
+JS - inlineSumInt, 6969
+Ws - sumWs, 756
+Ws - inlineSumWs, 753
 ```
 
 ### Firefox
 
 ```
 ##rust##
-JS - sumInt, 1114
-JS - inlineSumInt, 1114
-Ws - sumWs, 1292
-Ws - inlineSumWs, 727
+JS - sum, 782
+JS - inlineSum, 7657
+Ws - sum, 952
+Ws - inlineSum, 7859
 
 ##emcc##
-JS - sumInt, 1131
-JS - inlineSumInt, 1120
-Ws - sumWs, 1150
-Ws - inlineSumWs, 125
+JS - sumInt, 982
+JS - inlineSumInt, 9479
+Ws - sumWs, 912
+Ws - inlineSumWs, 942
 ```
 
 > Webassembly이 Javascript 보다 빠르고 \
@@ -142,20 +142,20 @@ Ws - inlineSumWs, 125
 
 ```bash
 emcc
-JS - sumInt 1133
-JS - inlineSumInt 1135
-Ws - sumWs 1113
-Ws - inlineSumWs 118
+JS - sum 704
+JS - inlineSum 6990
+Ws - sum 813
+Ws - inlineSum 815
 ```
 
 > Emscripten으로 컴파일된 코드는 역시 Inline 형식으로 작성된 Webassembly가 월등하게 빠르다.
 
 ```bash
 rust
-JS - sumInt 1161
-JS - inlineSumInt 1153
-Ws - sumWs 2196
-Ws - inlineSumWs 879
+JS - sum 697
+JS - inlineSum 6992
+Ws - sum 818
+Ws - inlineSum 5624
 ```
 
 > Rust로 컴파일된 코드는 호출 빈도가 많을 수록 느리고, Inline 형식으로 작성된 코드는 약간 빠르다.

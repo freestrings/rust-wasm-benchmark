@@ -1,8 +1,6 @@
 extern crate cfg_if;
 extern crate wasm_bindgen;
 
-extern crate serde_json;
-
 use cfg_if::cfg_if;
 use wasm_bindgen::prelude::*;
 

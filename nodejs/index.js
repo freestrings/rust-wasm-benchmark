@@ -21,10 +21,10 @@ function main() {
         throw new Error(`3.결과다름: ${(jsResult * iter)}, ${inlineJsResult}`);
     }
 
-    run('JS - sumInt', iter, () => jsSumInt(array, num) === jsResult);
-    run('JS - inlineSumInt', 1, () => inlineJsSumInt(array, num, iter) === inlineJsResult);
-    run('Ws - sumWs', iter, () => wasm.sum_array_in_rust(array) === jsResult);
-    run('Ws - inlineSumWs', 1, () => wasm.inline_sum_array_in_rust(iter, array) === inlineJsResult);
+    run('JS - sum', iter, () => jsSumInt(array, num) === jsResult);
+    run('JS - inlineSum', iter, () => inlineJsSumInt(array, num, iter) === inlineJsResult);
+    run('Ws - sum', iter, () => wasm.sum_array_in_rust(array) === jsResult);
+    run('Ws - inlineSum', iter, () => wasm.inline_sum_array_in_rust(iter, array) === inlineJsResult);
 }
 
 function initArray(num) {

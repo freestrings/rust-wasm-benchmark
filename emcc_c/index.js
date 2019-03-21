@@ -1,20 +1,17 @@
 msg('##emcc##');
 
 var module, functions = {};
-fetch('sumInt.wasm')
-    .then(response => response.arrayBuffer())
-    .then(buffer => new Uint8Array(buffer))
-    .then(binary => {
-        var moduleArgs = {
-            wasmBinary: binary,
-            onRuntimeInitialized: function() {
-                functions.sumInt = module._sumInt;
-                functions.inlineSumInt = module._inlineSumInt;
-                main();
-            }
-        };
-        module = Module(moduleArgs);
-    });
+fetch('sumInt.wasm').then(response => response.arrayBuffer()).then(buffer => new Uint8Array(buffer)).then(binary => {
+    var moduleArgs = {
+        wasmBinary: binary,
+        onRuntimeInitialized: function() {
+            functions.sumInt = module._sumInt;
+            functions.inlineSumInt = module._inlineSumInt;
+            main();
+        },
+    };
+    module = Module(moduleArgs);
+});
 
 function jsSumInt(array, n) {
     var s = 0;
@@ -60,12 +57,17 @@ function initArray(num) {
 }
 
 function run(message, iter, cb) {
-    let d = Date.now();
-    for (let i = 0; i < iter; i++) {
-        let ret = cb();
-        if (ret !== true) throw new Error(cb.toString());
-    }
-    msg([message, Date.now() - d].join(", "));
+    return new Promise(function(resolve, reject) {
+        setTimeout(function() {
+            let d = Date.now();
+            for (let i = 0; i < iter; i++) {
+                let ret = cb();
+                if (ret !== true) throw new Error(cb.toString());
+            }
+            msg([message, Date.now() - d].join(', '));
+            resolve();
+        }, 1000);
+    });
 }
 
 function main() {
@@ -77,27 +79,38 @@ function main() {
     let inlineJsResult = inlineJsSumInt(array, num, iter);
     let inlineWsResult = wsInlineWsSumInt(array, num, iter);
 
-    if(jsResult !== wsResult) {
+    if (jsResult !== wsResult) {
         throw new Error(`1.결과다름: ${jsResult}, ${wsResult}`);
     }
 
-    if(inlineJsResult !== inlineWsResult) {
+    if (inlineJsResult !== inlineWsResult) {
         throw new Error(`2.결과다름: ${inlineJsResult}, ${inlineWsResult}`);
     }
 
-    if(jsResult * iter !== inlineJsResult) {
+    if (jsResult * iter !== inlineJsResult) {
         throw new Error(`3.결과다름: ${(jsResult * iter)}, ${inlineJsResult}`);
     }
 
-    run('JS - sumInt', iter, () => jsSumInt(array, num) === jsResult);
-    run('JS - inlineSumInt', 1, () => inlineJsSumInt(array, num, iter) === inlineJsResult);
-    run('Ws - sumWs', iter, () => wsSumInt(array, num) === jsResult);
-    run('Ws - inlineSumWs', 1, () => wsInlineWsSumInt(array, num, iter) === inlineJsResult);
+    run('JS - sumInt', iter, function() {
+        return jsSumInt(array, num) === jsResult;
+    }).then(function() {
+        return run('JS - inlineSumInt', iter, function() {
+            return inlineJsSumInt(array, num, iter) === inlineJsResult;
+        });
+    }).then(function() {
+        return run('Ws - sumWs', iter, function() {
+            return wsSumInt(array, num) === jsResult;
+        });
+    }).then(function() {
+        return run('Ws - inlineSumWs', iter, function() {
+            return wsInlineWsSumInt(array, num, iter) === inlineJsResult;
+        });
+    });
 }
 
 function msg(msg) {
     console.log(msg);
-    let div = document.createElement("div");
+    let div = document.createElement('div');
     div.innerText = msg;
     document.body.appendChild(div);
 }
